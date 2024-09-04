@@ -1,5 +1,7 @@
 use std::env;
 use std::process;
+use std::fs::File;
+use std::io::{self, BufRead};
 
 fn help(){
     println!("Usage: rgrep [OPTIONS]... PATTERN [FILE]...");
@@ -16,6 +18,29 @@ fn unknown(){
     println!("Try 'rgrep -h' for more information.");
     process::exit(0);
 }
+
+fn file_parsing(
+    ignore_case: &bool,
+    recursive: &bool,
+    numbered: &bool,
+    debug: &bool,
+    invert_match: &bool,
+    h: &String,
+    n: &String,   
+    ) -> io::Result<()> {
+    let file = File::open(&h)?;
+    let reader = io::BufReader::new(file);
+    let mut line_number: u64 = 0;
+    for line in reader.lines() {
+        line_number += 1;
+        let line = line?;
+        if line.contains(n) {
+            println!("{}", line);
+        }
+    }
+Ok(())
+}
+
 
 fn flag_parsing(
     ignore_case: &mut bool,
@@ -63,7 +88,6 @@ fn main() {
     let mut needle_exists = false;
     let mut haystack = String::new();
     let mut needle = String::new();
-
     flag_parsing(
         &mut ignore_case,
         &mut recursive,
@@ -74,9 +98,18 @@ fn main() {
         &mut haystack,
         &mut needle,
     );
+    file_parsing(
+        &ignore_case,
+        &recursive,
+        &numbered,
+        &debug,
+        &invert_match,
+        &haystack,
+        &needle,
+    );
     if debug {
-        println!("Flags: ignore_case = {}, recursive = {}, numbered = {}, invert_match =  {} ", ignore_case, recursive, numbered, invert_match);
-        println!("Pattern: {}", needle);
-        println!("File/Directory: {}", haystack);
+        println!("Flags: ignore_case = {}, recursive = {}, numbered = {}, invert_match =  {} ", &ignore_case, &recursive, &numbered, &invert_match);
+        println!("Pattern: {}", &needle);
+        println!("File/Directory: {}", &haystack);
     }
 }
