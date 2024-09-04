@@ -23,6 +23,9 @@ fn flag_parsing(
     numbered: &mut bool,
     debug: &mut bool,
     invert_match: &mut bool,
+    needle_exists: &mut bool,
+    h: &mut String,
+    n: &mut String,
     ) {
     let args: Vec<String> = env::args().collect();
         for (index, arg) in args.iter().enumerate() {
@@ -39,6 +42,12 @@ fn flag_parsing(
                         _ => unknown(),
                     }
                 }
+            } else if *needle_exists {
+                h.push_str(arg);
+
+            } else {
+                n.push_str(arg);
+                *needle_exists = true;
             }
         }
     }
@@ -51,14 +60,23 @@ fn main() {
     let mut numbered = false;
     let mut debug = false;
     let mut invert_match = false;
+    let mut needle_exists = false;
+    let mut haystack = String::new();
+    let mut needle = String::new();
+
     flag_parsing(
         &mut ignore_case,
         &mut recursive,
         &mut numbered,
         &mut debug,
         &mut invert_match,
+        &mut needle_exists,
+        &mut haystack,
+        &mut needle,
     );
     if debug {
         println!("Flags: ignore_case = {}, recursive = {}, numbered = {}, invert_match =  {} ", ignore_case, recursive, numbered, invert_match);
+        println!("Pattern: {}", needle);
+        println!("File/Directory: {}", haystack);
     }
 }
