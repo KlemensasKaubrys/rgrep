@@ -2,6 +2,8 @@ use std::env;
 use std::process;
 use std::fs::File;
 use std::io::{self, BufRead};
+use walkdir::WalkDir;
+use std::path::Path;
 
 fn help(){
     println!("Usage: rgrep [OPTIONS]... PATTERN [FILE]...");
@@ -23,19 +25,40 @@ fn file_parsing(
     ignore_case: &bool,
     recursive: &bool,
     numbered: &bool,
-    debug: &bool,
     invert_match: &bool,
     h: &String,
     n: &String,
 ) -> io::Result<()> {
-    let file = File::open(h)?;
+    if *recursive {
+        for entry in WalkDir::new(h)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
+            if entry.file_type().is_file() {
+                process_file(entry.path(), ignore_case, numbered, invert_match, n)?;
+            }
+        }
+    } else {
+        process_file(Path::new(h), ignore_case, numbered, invert_match, n)?;
+    }
+    Ok(())
+}
+
+fn process_file(
+    path: &Path,
+    ignore_case: &bool,
+    numbered: &bool,
+    invert_match: &bool,
+    n: &String,
+) -> io::Result<()> {
+    let file = File::open(path)?;
     let reader = io::BufReader::new(file);
     let mut line_number: u64 = 0;
 
     for line in reader.lines() {
         line_number += 1;
         let line = line?;
-        
+
         let line_to_check = if *ignore_case {
             line.to_lowercase()
         } else {
@@ -125,7 +148,6 @@ fn main() {
         &ignore_case,
         &recursive,
         &numbered,
-        &debug,
         &invert_match,
         &haystack,
         &needle,
