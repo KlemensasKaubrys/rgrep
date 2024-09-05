@@ -34,8 +34,14 @@ fn file_parsing(
     for line in reader.lines() {
         line_number += 1;
         let line = line?;
-        if line.contains(n) {
-            println!("{}", line);
+        if *ignore_case {
+            if line.to_lowercase().contains(&n.to_lowercase()) {
+                println!("{}", line);           
+        } else {
+            if line.contains(n) {
+                println!("{}", line);
+            }
+        }
         }
     }
 Ok(())
