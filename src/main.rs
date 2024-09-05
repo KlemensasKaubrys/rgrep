@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::{self, BufRead};
 use walkdir::WalkDir;
 use std::path::Path;
+use std::time::Instant;
 
 fn help(){
     println!("Usage: rgrep [OPTIONS]... PATTERN [FILE]...");
@@ -126,6 +127,7 @@ fn flag_parsing(
 
 
 fn main() {
+    let start = Instant::now();
     let mut ignore_case = false;
     let mut recursive = false;
     let mut numbered = false;
@@ -144,6 +146,7 @@ fn main() {
         &mut haystack,
         &mut needle,
     );
+    if debug {println!("-----RESULT-----");}
     file_parsing(
         &ignore_case,
         &recursive,
@@ -152,9 +155,12 @@ fn main() {
         &haystack,
         &needle,
     );
+    let duration = start.elapsed();
     if debug {
+        println!("-----DEBUG-----");
         println!("Flags: ignore_case = {}, recursive = {}, numbered = {}, invert_match =  {} ", &ignore_case, &recursive, &numbered, &invert_match);
         println!("Pattern: {}", &needle);
         println!("File/Directory: {}", &haystack);
+        println!("Time elapsed: {:?}", duration);
     }
 }
