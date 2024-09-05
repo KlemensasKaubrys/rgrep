@@ -26,27 +26,44 @@ fn file_parsing(
     debug: &bool,
     invert_match: &bool,
     h: &String,
-    n: &String,   
-    ) -> io::Result<()> {
-    let file = File::open(&h)?;
+    n: &String,
+) -> io::Result<()> {
+    let file = File::open(h)?;
     let reader = io::BufReader::new(file);
     let mut line_number: u64 = 0;
+
     for line in reader.lines() {
         line_number += 1;
         let line = line?;
-        if *ignore_case {
-            if line.to_lowercase().contains(&n.to_lowercase()) {
-                println!("{}", line);           
+        
+        let line_to_check = if *ignore_case {
+            line.to_lowercase()
         } else {
-            if line.contains(n) {
-                println!("{}", line);
+            line.clone()
+        };
+
+        let search_string = if *ignore_case {
+            n.to_lowercase()
+        } else {
+            n.clone()
+        };
+
+        let matches = if *invert_match {
+            !line_to_check.contains(&search_string)
+        } else {
+            line_to_check.contains(&search_string)
+        };
+
+        if matches {
+            if *numbered {
+                print!("{}: ", line_number);
             }
-        }
+            println!("{}", line);
         }
     }
-Ok(())
-}
 
+    Ok(())
+}
 
 fn flag_parsing(
     ignore_case: &mut bool,
